@@ -1,0 +1,3 @@
+field_separator: ","
+load_col:
+    inter: [user_id, item_id, timestamp]
