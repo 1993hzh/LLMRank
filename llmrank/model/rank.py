@@ -1,6 +1,7 @@
 import os.path as osp
+
+import pandas as pd
 import torch
-import openai
 import time
 import asyncio
 import numpy as np
@@ -20,8 +21,6 @@ class Rank(SequentialRecommender):
         self.config = config
         self.max_tokens = config['max_tokens']
         self.api_model_name = config['api_name']
-        openai.api_key = config['api_key']
-        openai.api_base = config['api_base']
         self.api_batch = config['api_batch']
         self.async_dispatch = config['async_dispatch']
         self.temperature = config['temperature']
@@ -37,11 +36,20 @@ class Rank(SequentialRecommender):
 
         self.fake_fn = torch.nn.Linear(1, 1)
 
+    @property
+    def _openai_kwargs(self):
+        return {
+            "base_url": self.config['api_base'],
+            "api_key": self.config['api_key'],
+            "default_query": {'api-version': "2023-09-01-preview"},
+            "default_headers": {'AI-Resource-Group': 'default'},
+        }
+
     def load_text(self):
         token_text = {}
         item_text = ['[PAD]']
         feat_path = osp.join(self.data_path, f'{self.dataset_name}.item')
-        if self.dataset_name in ['ml-1m', 'ml-1m-full']:
+        if self.dataset_name in ['ml-1m', 'ml-1m-full', 'ml-100k']:
             with open(feat_path, 'r', encoding='utf-8') as file:
                 file.readline()
                 for line in file:
@@ -56,12 +64,23 @@ class Rank(SequentialRecommender):
                     raw_text = 'A ' + raw_text[:-3]
                 item_text.append(raw_text)
             return item_text
-        elif self.dataset_name in ['Games', 'Games-6k']:
+        elif self.dataset_name in ['amazon-beauty', 'amazon-music']:
             with open(feat_path, 'r', encoding='utf-8') as file:
                 file.readline()
                 for line in file:
-                    item_id, title = line.strip().split('\t')
+                    item_id, title = line.strip().split(',')
                     token_text[item_id] = title
+            for i, token in enumerate(self.id_token):
+                if token == '[PAD]': continue
+                raw_text = token_text[token]
+                item_text.append(raw_text)
+            return item_text
+        elif self.dataset_name in ['lsc']:
+            df = pd.read_csv(feat_path, sep=',', encoding='utf-8')
+            for _, row in df.iterrows():
+                item_id = row['item_id:token']
+                title = row['title:token_seq']
+                token_text[f"{item_id}"] = title
             for i, token in enumerate(self.id_token):
                 if token == '[PAD]': continue
                 raw_text = token_text[token]
@@ -109,22 +128,15 @@ class Rank(SequentialRecommender):
                 if 'llama' in self.api_model_name:
                     response = openai_response
                 else:
-                    response = openai_response['choices'][0]['message']['content']
+                    response = openai_response.choices[0].message.content
                 response_list = response.split('\n')
                 
                 self.logger.info(prompt_list[i])
                 self.logger.info(response)
                 self.logger.info(f'Here are candidates: {candidate_text}')
                 self.logger.info(f'Here are answer: {response_list}')
-                
-                if self.dataset_name in ['ml-1m', 'ml-1m-full']:
-                    rec_item_idx_list = self.parsing_output_text(scores, i, response_list, idxs, candidate_text)
-                elif self.dataset_name in ['Games', 'Games-6k']:
-                    # rec_item_idx_list = self.parsing_output_indices(scores, i, response_list, idxs, candidate_text)
-                    rec_item_idx_list = self.parsing_output_text(scores, i, response_list, idxs, candidate_text)
-                else:
-                    raise NotImplementedError()
 
+                rec_item_idx_list = self.parsing_output_text(scores, i, response_list, idxs, candidate_text)
                 if int(pos_items[i % origin_batch_size]) in candidate_idx:
                     target_text = candidate_text[candidate_idx.index(int(pos_items[i % origin_batch_size]))]
                     try:
@@ -142,7 +154,10 @@ class Rank(SequentialRecommender):
                             retry_flag -= 1
                             while True:
                                 try:
-                                    openai_response = dispatch_single_openai_requests(prompt_list[i], self.api_model_name, self.temperature)
+                                    openai_response = dispatch_single_openai_requests(prompt_list[i],
+                                                                                      self.api_model_name,
+                                                                                      self.temperature,
+                                                                                      self._openai_kwargs)
                                     break
                                 except Exception as e:
                                     print(f'Error {e}, retry at {time.ctime()}', flush=True)
@@ -195,7 +210,8 @@ class Rank(SequentialRecommender):
                 while True:
                     try:
                         openai_responses += asyncio.run(
-                            dispatch_openai_requests(prompt_list[i:i+self.api_batch], self.api_model_name, self.temperature)
+                            dispatch_openai_requests(prompt_list[i:i + self.api_batch], self.api_model_name,
+                                                     self.temperature, self._openai_kwargs)
                         )
                         break
                     except Exception as e:
@@ -204,7 +220,7 @@ class Rank(SequentialRecommender):
         else:
             self.logger.info('Dispatching OpenAI API requests one by one.')
             for message in tqdm(prompt_list):
-                openai_responses.append(dispatch_single_openai_requests(message, self.api_model_name, self.temperature))
+                openai_responses.append(dispatch_single_openai_requests(message, self.api_model_name, self.temperature, self._openai_kwargs))
         self.logger.info('Received OpenAI Responses')
         return openai_responses
     

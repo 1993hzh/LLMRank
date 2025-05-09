@@ -1,6 +1,7 @@
 import importlib
 import asyncio
-import openai
+
+from openai import OpenAI, AsyncOpenAI
 from recbole.utils import get_model as recbole_get_model
 import os
 true=True
@@ -23,7 +24,8 @@ def get_model(model_name):
 async def dispatch_openai_requests(
     messages_list,
     model: str,
-    temperature: float
+    temperature: float,
+    openai_kwargs: dict,
 ):
     """Dispatches requests to OpenAI API asynchronously.
     
@@ -33,24 +35,27 @@ async def dispatch_openai_requests(
         temperature: Temperature to use for the model.
         max_tokens: Maximum number of tokens to generate.
         top_p: Top p to use for the model.
+        openai_kwargs
     Returns:
         List of responses from OpenAI API.
     """
-    async_responses = [
-        openai.ChatCompletion.acreate(
-            model=model,
-            messages=x,
-            temperature=temperature
-        )
-        for x in messages_list
-    ]
-    return await asyncio.gather(*async_responses)
+    async with AsyncOpenAI(**openai_kwargs) as client:
+        async_responses = [
+            client.chat.completions.create(
+                model=model,
+                messages=x,
+                temperature=temperature
+            )
+            for x in messages_list
+        ]
+        return await asyncio.gather(*async_responses)
 
 
 def dispatch_single_openai_requests(
     message,
     model: str,
-    temperature: float
+    temperature: float,
+    openai_kwargs: dict,
 ):
     """Dispatches requests to OpenAI API asynchronously.
     
@@ -60,10 +65,12 @@ def dispatch_single_openai_requests(
         temperature: Temperature to use for the model.
         max_tokens: Maximum number of tokens to generate.
         top_p: Top p to use for the model.
+        openai_kwargs
     Returns:
         List of responses from OpenAI API.
     """
-    responses = openai.ChatCompletion.create(
+    client = OpenAI(**openai_kwargs)
+    responses = client.chat.completions.create(
         model=model,
         messages=message,
         temperature=temperature
