@@ -9,18 +9,25 @@ class RF(Rank):
 
     def construct_prompt(self, dataset_name, user_his_text, candidate_text_order):
         recent_item = user_his_text[-1][user_his_text[-1].find('. ') + 2:]
-        if dataset_name in ['ml-1m', 'ml-1m-full']:
+        if dataset_name in ['ml-1m', 'ml-1m-full', 'ml-100k']:
             prompt = f"I've watched the following movies in the past in order:\n{user_his_text}\n\n" \
                     f"Now there are {self.recall_budget} candidate movies that I can watch next:\n{candidate_text_order}\n" \
                     f"Please rank these {self.recall_budget} movies by measuring the possibilities that I would like to watch next most, according to my watching history. Please think step by step.\n" \
                     f"Note that my most recently watched movie is {recent_item}. " \
                     f"Please show me your ranking results with order numbers. Split your output with line break. You MUST rank the given candidate movies. You can not generate movies that are not in the given candidate list."
-        elif dataset_name in ['Games', 'Games-6k']:
+        elif dataset_name in ['Games', 'Games-6k', 'amazon-beauty', 'amazon-music']:
             prompt = f"I've purchased the following products in the past in order:\n{user_his_text}\n\n" \
                     f"Now there are {self.recall_budget} candidate products that I can consider to purchase next:\n{candidate_text_order}\n" \
                     f"Please rank these {self.recall_budget} products by measuring the possibilities that I would like to purchase next most, according to the given purchasing records. Please think step by step.\n" \
                     f"Note that my most recently purchased product is {recent_item}. " \
-                    f"Please show me your ranking results with order numbers. Split your output with line break. You MUST rank the given candidate movies. You can not generate movies that are not in the given candidate list."
+                    f"Please show me your ranking results with order numbers. Split your output with line break. You MUST rank the given candidate products. You can not generate products that are not in the given candidate list."
+                    # f"Please only output the order numbers after ranking. Split these order numbers with line break."
+        elif dataset_name in ['lsc']:
+            prompt = f"I've learned the following SAP courses in the past in order:\n{user_his_text}\n\n" \
+                    f"Now there are {self.recall_budget} candidate courses that I can consider to learn next:\n{candidate_text_order}\n" \
+                    f"Please rank these {self.recall_budget} courses by measuring the possibilities that I would like to learn next most, according to the given learning records. Please think step by step.\n" \
+                    f"Note that my most recently learned course is {recent_item}. " \
+                    f"Please show me your ranking results with order numbers. Split your output with line break. You MUST rank the given candidate courses. You can not generate courses that are not in the given candidate list."
                     # f"Please only output the order numbers after ranking. Split these order numbers with line break."
         else:
             raise NotImplementedError(f'Unknown dataset [{dataset_name}].')

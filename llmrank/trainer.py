@@ -1,11 +1,11 @@
 import os
-import numpy as np
 from tqdm import tqdm
 import torch
 from recbole.trainer import Trainer
 from recbole.utils import EvaluatorType, set_color
 from recbole.data.interaction import Interaction
-
+import numpy as np
+np.float = float
 
 class SelectedUserTrainer(Trainer):
     def __init__(self, config, model, dataset):

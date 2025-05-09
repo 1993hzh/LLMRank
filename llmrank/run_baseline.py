@@ -7,7 +7,8 @@ from recbole.data.transform import construct_transform
 from recbole.utils import init_logger, get_trainer, init_seed, set_color, get_flops
 
 from utils import get_model
-
+import numpy as np
+np.float = float
 
 def run_baseline(model_name, dataset_name, **kwargs):
     props = ['props/overall.yaml', f'props/{model_name}.yaml', f'props/{dataset_name}.yaml']
