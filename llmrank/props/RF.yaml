@@ -1,9 +1,10 @@
 # OpenAI API
 api_name: 'gpt-4o-mini'
-max_tokens: 512
+max_tokens: 1024
 api_batch: 8
 temperature: 0
 async_dispatch: True
 
 # Others
-max_his_len: 50
+max_his_len: 5
+has_gt: False
