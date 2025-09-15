@@ -52,7 +52,7 @@ class VQRec(SequentialRecommender):
         # VQRec args
         self.code_dim = config['code_dim']
         self.code_cap = config['code_cap']
-        self.pq_codes = dataset.pq_codes
+        self.pq_codes = dataset.pq_codes.to(config['device'])
         self.temperature = config['temperature']
         self.index_assignment_flag = False
         self.sinkhorn_iter = config['sinkhorn_iter']
