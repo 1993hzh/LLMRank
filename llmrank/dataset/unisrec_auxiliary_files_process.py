@@ -52,7 +52,7 @@ def load_item_text_list(args,):
             col_title = "title:token"
         case 'ml-100k':
             sep = "\t"
-            col_title = "movie_title:token"
+            col_title = "movie_title:token_seq"
         case _:
             sep = "\t"
             col_title = "title:token"
