@@ -50,7 +50,7 @@ def load_item_text_list(args,):
         case 'amazon-beauty' | 'amazon-music':
             sep = ","
             col_title = "title:token"
-        case 'ml-100k:
+        case 'ml-100k':
             sep = "\t"
             col_title = "movie_title:token"
         case _:
