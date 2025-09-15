@@ -1,4 +1,4 @@
-torch==1.13.0
+torch==1.11.0
 recbole==1.1.1
 openai>=1.58.1
 numpy<2.0.0
