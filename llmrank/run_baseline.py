@@ -64,8 +64,8 @@ def run_baseline(model_name, dataset_name, **kwargs):
     # model evaluation
     test_result = trainer.evaluate(test_data, load_best_model=True, show_progress=config["show_progress"])
 
-    print(f": {best_valid_result}")
-    print(f": {test_result}")
+    print(f"best_valid_result: {best_valid_result}")
+    print(f"test_result: {test_result}")
 
     return model_name, dataset_name, {
         "best_valid_score": best_valid_score,
