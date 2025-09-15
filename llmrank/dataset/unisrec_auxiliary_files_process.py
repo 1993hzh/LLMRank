@@ -49,10 +49,15 @@ def load_item_text_list(args,):
     match (args.dataset):
         case 'amazon-beauty' | 'amazon-music':
             sep = ","
+            col_title = "title:token"
+        case 'ml-100k:
+            sep = "\t"
+            col_title = "movie_title:token"
         case _:
             sep = "\t"
+            col_title = "title:token"
     df = pd.read_csv(str(path), sep=sep)
-    return [(int(row['item_id:token']), row['title:token']) for _, row in df.iterrows()]
+    return [(int(row['item_id:token']), row[col_title]) for _, row in df.iterrows()]
     # item_text_list = []
     # with open(os.path.join(args.input_path, args.dataset, args.dataset + '.item')) as f:
     #     f.readline()
