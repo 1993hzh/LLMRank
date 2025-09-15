@@ -16,6 +16,8 @@ class UniSRecDataset(SequentialDataset):
         self.plm_embedding = self.weight2emb(plm_embedding_weight)
 
     def load_plm_embedding(self):
+        if self.dataset_name == "ml-100k":
+            self.config['data_path'] = "dataset/ml-100k"
         feat_path = osp.join(self.config['data_path'], f'{self.dataset_name}.{self.plm_suffix}')
         loaded_feat = np.fromfile(feat_path, dtype=np.float32).reshape(-1, self.plm_size)
         print(loaded_feat.shape)
@@ -50,6 +52,8 @@ class VQRecDataset(SequentialDataset):
             index_dataset = self.config['index_pretrain_dataset']
         else:
             index_dataset = self.dataset_name
+        if self.dataset_name == "ml-100k":
+            self.config['data_path'] = "dataset/ml-100k"
         index_path = os.path.join(
             self.config['index_path'],
             index_dataset,
