@@ -5,14 +5,16 @@ eval_args:
 repeatable: True
 loss_type: CE
 
+device: cpu
+seed: 2026
 train_batch_size: 4096
 eval_batch_size: 100
-valid_metric: NDCG@10
-metrics: ["Recall", "NDCG"]
-topk: [1, 5, 10, 20, 50]
+valid_metric: Hit@3
+metrics: ["Hit", "NDCG"]
+topk: [3, 5, 10]
 
 train_neg_sample_args: ~
-selected_user_suffix: random
+selected_user_suffix: sasrec
 recall_budget: 20
-has_gt: True
+has_gt: False
 fix_pos: -1

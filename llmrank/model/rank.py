@@ -68,7 +68,7 @@ class Rank(SequentialRecommender):
             with open(feat_path, 'r', encoding='utf-8') as file:
                 file.readline()
                 for line in file:
-                    item_id, title = line.strip().split(',')
+                    item_id, title, *_ = line.strip().split(',')
                     token_text[item_id] = title
             for i, token in enumerate(self.id_token):
                 if token == '[PAD]': continue

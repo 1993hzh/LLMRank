@@ -1,4 +1,6 @@
 import os
+
+import pandas as pd
 from transformers import AutoTokenizer, AutoModel
 import argparse
 import torch
@@ -43,13 +45,21 @@ def generate_item_embedding(args, item_text_list, tokenizer, model,):
 
 def load_item_text_list(args,):
     # dataset_full_name = amazon_dataset2fullname[args.dataset] if args.dataset != 'ml-1m' else args.dataset
-    item_text_list = []
-    with open(os.path.join(args.input_path, args.dataset, args.dataset + '.item')) as f:
-        f.readline()
-        for line in f:
-            line = line.strip().split('\t')
-            item_text_list.append((int(line[0]), line[1]))
-    return item_text_list
+    path = os.path.join(args.input_path, args.dataset, args.dataset + '.item')
+    match (args.dataset):
+        case 'amazon-beauty' | 'amazon-music':
+            sep = ","
+        case _:
+            sep = "\t"
+    df = pd.read_csv(str(path), sep=sep)
+    return [(int(row['item_id:token']), row['title:token']) for _, row in df.iterrows()]
+    # item_text_list = []
+    # with open(os.path.join(args.input_path, args.dataset, args.dataset + '.item')) as f:
+    #     f.readline()
+    #     for line in f:
+    #         line = line.strip().split('\t')
+    #         item_text_list.append((int(line[0]), line[1]))
+    # return item_text_list
 
 def load_plm(model_name='bert-base-uncased'):
     tokenizer = AutoTokenizer.from_pretrained(model_name)

@@ -31,7 +31,16 @@ def run_baseline(model_name, dataset_name, **kwargs):
     logger.info(config)
 
     # dataset filtering
-    dataset = create_dataset(config)
+    # dataset = create_dataset(config)
+    if model_name == 'UniSRec':
+        from dataset import UniSRecDataset
+        dataset = UniSRecDataset(config)
+    elif model_name == 'VQRec':
+        from dataset import VQRecDataset
+        dataset = VQRecDataset(config)
+    else:
+        from recbole.data.dataset import SequentialDataset
+        dataset = SequentialDataset(config)
     logger.info(dataset)
 
     # dataset splitting
