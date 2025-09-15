@@ -1,0 +1,2 @@
+hidden_size: 64                # (int) The number of features in the hidden state.
+loss_type: 'BPR'                 # (str) The type of loss function. Range in ['BPR', 'CE'].
